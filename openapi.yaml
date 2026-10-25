@@ -1,0 +1,1629 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "IncuBrix Video Editing Engine",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Health Check",
+        "description": "Health check endpoint required by Integration Standard #8.",
+        "operationId": "health_check_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ready": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Readiness Check",
+        "description": "Check Redis when it is configured as the retry-safety store.",
+        "operationId": "readiness_check_api_v1_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/edit": {
+      "post": {
+        "tags": [
+          "Editing"
+        ],
+        "summary": "Process Prompt",
+        "description": "Translates natural language editing instructions into structured operations \nreturning Applied, Needs clarification, or Rejected.",
+        "operationId": "process_prompt_api_v1_edit_post",
+        "parameters": [
+          {
+            "name": "prompt",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000,
+              "title": "Prompt"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromptInterpretationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Create a timeline session from a transcript",
+        "description": "Accept a prepared transcript; media upload and transcription jobs are separate work.",
+        "operationId": "create_session_api_v1_sessions_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimelineSessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/upload": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Upload a video, transcribe it, and create an editing session",
+        "operationId": "create_session_from_upload_api_v1_sessions_upload_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_session_from_upload_api_v1_sessions_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobAcceptedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get Job",
+        "operationId": "get_job_api_v1_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{job_id}/result": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Download a completed render",
+        "operationId": "get_job_result_api_v1_jobs__job_id__result_get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/render": {
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Enqueue Render",
+        "operationId": "enqueue_render_api_v1_sessions__session_id__render_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobAcceptedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Get Session",
+        "operationId": "get_session_api_v1_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimelineSessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/source": {
+      "get": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Stream the source media for a session",
+        "operationId": "get_session_source_api_v1_sessions__session_id__source_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/operations": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Apply Session Operations",
+        "operationId": "apply_session_operations_api_v1_sessions__session_id__operations_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyOperationsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimelineSessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/edit": {
+      "post": {
+        "tags": [
+          "Sessions",
+          "Editing"
+        ],
+        "summary": "Edit Session From Prompt",
+        "operationId": "edit_session_from_prompt_api_v1_sessions__session_id__edit_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionPromptRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEditResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddBGMOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "add_bgm",
+            "title": "Op",
+            "default": "add_bgm"
+          },
+          "audio_url": {
+            "type": "string",
+            "title": "Audio Url"
+          },
+          "auto_ducking": {
+            "type": "boolean",
+            "title": "Auto Ducking",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "audio_url"
+        ],
+        "title": "AddBGMOp"
+      },
+      "AddCaptionOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "add_caption",
+            "title": "Op",
+            "default": "add_caption"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "target_word_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Target Word Ids",
+            "description": "Words over which caption displays"
+          },
+          "style_attributes": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style Attributes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "target_word_ids"
+        ],
+        "title": "AddCaptionOp"
+      },
+      "AppliedResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "applied",
+            "title": "Status",
+            "default": "applied"
+          },
+          "operations": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CutRangeOp"
+                },
+                {
+                  "$ref": "#/components/schemas/KeepRangeOp"
+                },
+                {
+                  "$ref": "#/components/schemas/ReorderOp"
+                },
+                {
+                  "$ref": "#/components/schemas/ChangeSpeedOp"
+                },
+                {
+                  "$ref": "#/components/schemas/AudioEffectOp"
+                },
+                {
+                  "$ref": "#/components/schemas/AddCaptionOp"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdateCaptionOp"
+                },
+                {
+                  "$ref": "#/components/schemas/AutoCaptionOp"
+                },
+                {
+                  "$ref": "#/components/schemas/TranslateCaptionsOp"
+                },
+                {
+                  "$ref": "#/components/schemas/RemoveFillersOp"
+                },
+                {
+                  "$ref": "#/components/schemas/RemoveLongPausesOp"
+                },
+                {
+                  "$ref": "#/components/schemas/AddBGMOp"
+                },
+                {
+                  "$ref": "#/components/schemas/HistoryControlOp"
+                }
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Operations"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "description": "Human-readable summary of changes made"
+          },
+          "time_policy_used": {
+            "type": "string",
+            "enum": [
+              "original_time",
+              "current_time"
+            ],
+            "title": "Time Policy Used",
+            "default": "current_time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "operations",
+          "summary"
+        ],
+        "title": "AppliedResponse"
+      },
+      "ApplyOperationsRequest": {
+        "properties": {
+          "operations": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CutRangeOp"
+                },
+                {
+                  "$ref": "#/components/schemas/KeepRangeOp"
+                },
+                {
+                  "$ref": "#/components/schemas/ReorderOp"
+                },
+                {
+                  "$ref": "#/components/schemas/ChangeSpeedOp"
+                },
+                {
+                  "$ref": "#/components/schemas/AudioEffectOp"
+                },
+                {
+                  "$ref": "#/components/schemas/AddCaptionOp"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdateCaptionOp"
+                },
+                {
+                  "$ref": "#/components/schemas/AutoCaptionOp"
+                },
+                {
+                  "$ref": "#/components/schemas/TranslateCaptionsOp"
+                },
+                {
+                  "$ref": "#/components/schemas/RemoveFillersOp"
+                },
+                {
+                  "$ref": "#/components/schemas/RemoveLongPausesOp"
+                },
+                {
+                  "$ref": "#/components/schemas/AddBGMOp"
+                },
+                {
+                  "$ref": "#/components/schemas/HistoryControlOp"
+                }
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Operations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "operations"
+        ],
+        "title": "ApplyOperationsRequest"
+      },
+      "AudioEffectOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "audio_effect",
+            "title": "Op",
+            "default": "audio_effect"
+          },
+          "target_word_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Target Word Ids"
+          },
+          "effect_type": {
+            "type": "string",
+            "enum": [
+              "mute",
+              "bleep"
+            ],
+            "title": "Effect Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_word_ids",
+          "effect_type"
+        ],
+        "title": "AudioEffectOp"
+      },
+      "AutoCaptionOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "auto_caption",
+            "title": "Op",
+            "default": "auto_caption"
+          },
+          "max_words_per_caption": {
+            "type": "integer",
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Max Words Per Caption",
+            "default": 6
+          }
+        },
+        "type": "object",
+        "title": "AutoCaptionOp"
+      },
+      "Body_create_session_from_upload_api_v1_sessions_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language",
+            "description": "Whisper language code; omit to detect automatically"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_create_session_from_upload_api_v1_sessions_upload_post"
+      },
+      "ChangeSpeedOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "change_speed",
+            "title": "Op",
+            "default": "change_speed"
+          },
+          "target_word_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Target Word Ids",
+            "description": "Word IDs affected"
+          },
+          "speed_factor": {
+            "type": "number",
+            "maximum": 4.0,
+            "minimum": 0.25,
+            "title": "Speed Factor",
+            "description": "Speed factor from 0.25x through 4x"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_word_ids",
+          "speed_factor"
+        ],
+        "title": "ChangeSpeedOp"
+      },
+      "ClarificationOption": {
+        "properties": {
+          "option_id": {
+            "type": "string",
+            "title": "Option Id"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "start_time_current": {
+            "type": "string",
+            "title": "Start Time Current"
+          },
+          "word_snippet": {
+            "type": "string",
+            "title": "Word Snippet"
+          }
+        },
+        "type": "object",
+        "required": [
+          "option_id",
+          "description",
+          "start_time_current",
+          "word_snippet"
+        ],
+        "title": "ClarificationOption"
+      },
+      "CreateSessionRequest": {
+        "properties": {
+          "transcript": {
+            "items": {
+              "$ref": "#/components/schemas/TranscriptWord"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Transcript"
+          },
+          "video_metadata": {
+            "$ref": "#/components/schemas/VideoMetadata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transcript",
+          "video_metadata"
+        ],
+        "title": "CreateSessionRequest"
+      },
+      "CutRangeOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "cut_range",
+            "title": "Op",
+            "default": "cut_range"
+          },
+          "target_word_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Target Word Ids",
+            "description": "List of word IDs to cut"
+          },
+          "snap_to_silence": {
+            "type": "boolean",
+            "title": "Snap To Silence",
+            "description": "Snap cut boundaries to nearest silence",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_word_ids"
+        ],
+        "title": "CutRangeOp"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HistoryControlOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "history_control",
+            "title": "Op",
+            "default": "history_control"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "undo",
+              "redo",
+              "restore_step"
+            ],
+            "title": "Action"
+          },
+          "target_step_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Step Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "HistoryControlOp"
+      },
+      "JobAcceptedResponse": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "status": {
+            "type": "string",
+            "const": "queued",
+            "title": "Status"
+          },
+          "status_url": {
+            "type": "string",
+            "title": "Status Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "status",
+          "status_url"
+        ],
+        "title": "JobAcceptedResponse"
+      },
+      "JobStatusResponse": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "progress": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Progress"
+          },
+          "created_at": {
+            "type": "number",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "number",
+            "title": "Updated At"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "kind",
+          "status",
+          "progress",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "JobStatusResponse"
+      },
+      "KeepRangeOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "keep_range",
+            "title": "Op",
+            "default": "keep_range"
+          },
+          "target_word_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Target Word Ids",
+            "description": "List of word IDs to retain exclusively"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_word_ids"
+        ],
+        "title": "KeepRangeOp"
+      },
+      "NeedsClarificationResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "needs_clarification",
+            "title": "Status",
+            "default": "needs_clarification"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question",
+            "description": "Clear, non-technical question asking for details"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/ClarificationOption"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Options"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question",
+          "options"
+        ],
+        "title": "NeedsClarificationResponse"
+      },
+      "PromptInterpretationResult": {
+        "properties": {
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AppliedResponse"
+              },
+              {
+                "$ref": "#/components/schemas/NeedsClarificationResponse"
+              },
+              {
+                "$ref": "#/components/schemas/RejectedResponse"
+              }
+            ],
+            "title": "Result"
+          }
+        },
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "title": "PromptInterpretationResult"
+      },
+      "RejectedResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "rejected",
+            "title": "Status",
+            "default": "rejected"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Explanation of why the prompt cannot be executed"
+          },
+          "conflicting_step_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conflicting Step Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "RejectedResponse"
+      },
+      "RemoveFillersOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "remove_fillers",
+            "title": "Op",
+            "default": "remove_fillers"
+          },
+          "filler_words": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Filler Words"
+          }
+        },
+        "type": "object",
+        "title": "RemoveFillersOp"
+      },
+      "RemoveLongPausesOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "remove_long_pauses",
+            "title": "Op",
+            "default": "remove_long_pauses"
+          },
+          "threshold_s": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 0.2,
+            "title": "Threshold S",
+            "default": 0.8
+          }
+        },
+        "type": "object",
+        "title": "RemoveLongPausesOp"
+      },
+      "ReorderOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "reorder",
+            "title": "Op",
+            "default": "reorder"
+          },
+          "source_word_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Source Word Ids",
+            "description": "Word IDs being moved"
+          },
+          "insert_after_word_id": {
+            "type": "string",
+            "title": "Insert After Word Id",
+            "description": "Anchor word ID after which source is placed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_word_ids",
+          "insert_after_word_id"
+        ],
+        "title": "ReorderOp"
+      },
+      "SessionEditResponse": {
+        "properties": {
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AppliedResponse"
+              },
+              {
+                "$ref": "#/components/schemas/NeedsClarificationResponse"
+              },
+              {
+                "$ref": "#/components/schemas/RejectedResponse"
+              }
+            ],
+            "title": "Result"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "timeline_hash": {
+            "type": "string",
+            "title": "Timeline Hash"
+          },
+          "duration_s": {
+            "type": "number",
+            "title": "Duration S"
+          }
+        },
+        "type": "object",
+        "required": [
+          "result",
+          "revision",
+          "timeline_hash",
+          "duration_s"
+        ],
+        "title": "SessionEditResponse"
+      },
+      "SessionPromptRequest": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Prompt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompt"
+        ],
+        "title": "SessionPromptRequest"
+      },
+      "TimelineSessionResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "history_depth": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "History Depth"
+          },
+          "redo_depth": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Redo Depth"
+          },
+          "timeline_hash": {
+            "type": "string",
+            "title": "Timeline Hash"
+          },
+          "duration_s": {
+            "type": "number",
+            "title": "Duration S"
+          },
+          "active_word_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Active Word Ids"
+          },
+          "captions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Captions"
+          },
+          "effects": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Effects"
+          },
+          "speed_map": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Speed Map"
+          },
+          "background_music": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Background Music"
+          },
+          "long_pause_threshold_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Long Pause Threshold S"
+          },
+          "operation_summaries": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Operation Summaries"
+          },
+          "transcript": {
+            "items": {
+              "$ref": "#/components/schemas/TranscriptWord"
+            },
+            "type": "array",
+            "title": "Transcript"
+          },
+          "video_metadata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VideoMetadata"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "revision",
+          "history_depth",
+          "redo_depth",
+          "timeline_hash",
+          "duration_s",
+          "active_word_ids",
+          "captions",
+          "effects",
+          "speed_map"
+        ],
+        "title": "TimelineSessionResponse"
+      },
+      "TranscriptWord": {
+        "properties": {
+          "word_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Word Id"
+          },
+          "word": {
+            "type": "string",
+            "title": "Word"
+          },
+          "start": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Start"
+          },
+          "end": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "End"
+          },
+          "speaker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speaker"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "word_id",
+          "word",
+          "start",
+          "end"
+        ],
+        "title": "TranscriptWord"
+      },
+      "TranslateCaptionsOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "translate_captions",
+            "title": "Op",
+            "default": "translate_captions"
+          },
+          "language": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 2,
+            "title": "Language",
+            "description": "Target language name or BCP 47 language tag"
+          }
+        },
+        "type": "object",
+        "required": [
+          "language"
+        ],
+        "title": "TranslateCaptionsOp"
+      },
+      "UpdateCaptionOp": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "update_caption",
+            "title": "Op",
+            "default": "update_caption"
+          },
+          "caption_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Caption Id"
+          },
+          "style_attributes": {
+            "additionalProperties": true,
+            "type": "object",
+            "minProperties": 1,
+            "title": "Style Attributes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "caption_id",
+          "style_attributes"
+        ],
+        "title": "UpdateCaptionOp"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VideoMetadata": {
+        "properties": {
+          "source_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$",
+            "title": "Source Sha256"
+          },
+          "duration": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Duration"
+          },
+          "fps": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Fps"
+          },
+          "width": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Height"
+          },
+          "has_audio": {
+            "type": "boolean",
+            "title": "Has Audio"
+          },
+          "source_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Uri"
+          },
+          "transcript_language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript Language"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_sha256",
+          "duration",
+          "fps",
+          "width",
+          "height",
+          "has_audio"
+        ],
+        "title": "VideoMetadata"
+      }
+    }
+  }
+}

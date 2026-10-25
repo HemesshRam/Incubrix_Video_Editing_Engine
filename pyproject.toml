@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "incubrix-video-engine"
+version = "0.1.0"
+description = "Deterministic, prompt-driven video editing engine"
+authors = []
+readme = "README.md"
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.15"
+fastapi = "^0.115.0"
+uvicorn = { version = "^0.30.0", extras = ["standard"] }
+structlog = "^24.4.0"
+ffmpeg-python = "^0.2.0"
+faster-whisper = "^1.0.0"
+instructor = "^1.4.0"
+groq = "^1.7.0"
+python-dotenv = "^1.0.1"
+httpx = "^0.28.1"
+pydantic = "^2.8.0"
+pydantic-settings = "^2.4.0"
+redis = "^5.0.8"
+python-multipart = "^0.0.9"
+boto3 = "^1.35.0"
+pyyaml = "^6.0.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"

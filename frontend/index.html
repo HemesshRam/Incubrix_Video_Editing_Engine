@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0c10" />
+    <title>IncuBrix Studio — Prompt Video Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/studio.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="IncuBrix Studio home"><span class="brand-mark">i</span><span>incubrix<span class="brand-light">studio</span></span></a>
+        <div class="project-name"><span class="live-dot"></span><span id="projectLabel">Untitled edit</span><span class="autosave">SESSION STATE</span></div>
+        <div class="top-actions"><span class="engine-tag"><span class="spark">✳</span> GROQ · GPT-OSS-20B</span><button class="button button-quiet" id="newProjectBtn">＋ <span>New project</span></button></div>
+      </header>
+
+      <main class="workspace">
+        <section class="stage-column">
+          <div class="section-heading"><div><div class="eyebrow">01 / SOURCE</div><h1>Your story, <em>re-cut.</em></h1></div><div class="step-chip" id="sessionChip">NO SESSION</div></div>
+          <div class="preview-frame" id="previewFrame">
+            <video id="videoPreview" controls playsinline></video>
+            <div class="empty-preview" id="emptyPreview"><div class="film-icon">▧</div><strong>Bring your footage in</strong><span>Start with a talking-head video. We’ll map every word to the timeline.</span><label class="language-picker" for="sourceLanguage">SPOKEN LANGUAGE<select id="sourceLanguage"><option value="">Detect automatically</option></select></label><label class="button button-primary upload-button" for="videoInput">Choose a video <span>↗</span></label><input id="videoInput" type="file" accept="video/mp4,video/quicktime,video/*" hidden /></div>
+            <div class="preview-meta" id="previewMeta" hidden><span id="videoDimensions">—</span><span id="videoDuration">—</span><span id="speechCount">— WORDS</span></div>
+          </div>
+          <div class="transport-row"><div class="transport-time"><span id="playheadTime">00:00</span><span class="time-divider">/</span><span id="durationTime">00:00</span></div><div class="timeline-zoom">SOURCE PREVIEW <span class="zoom-track"><i></i></span> FIT</div><button class="icon-button" id="renderBtn" disabled title="Render edited video">↗<span>Render cut</span></button></div>
+
+          <div class="timeline-panel">
+            <div class="panel-title"><div><span class="eyebrow">02 / TIMELINE</span><h2>Transcript map</h2></div><span class="micro-copy" id="wordCount">WAITING FOR VIDEO</span></div>
+            <div class="transcript-track" id="transcriptTrack"><div class="transcript-empty">Your word-level transcript will appear here after upload.</div></div>
+            <div class="timeline-ruler"><span>00:00</span><span>00:15</span><span>00:30</span><span>00:45</span><span>01:00</span></div>
+            <div class="timeline-lane"><span class="lane-label">VOICE</span><div class="waveform" id="waveform"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="timeline-lane caption-lane"><span class="lane-label">CAPTIONS</span><div class="caption-blocks" id="captionBlocks"><span class="empty-lane">—</span></div></div>
+          </div>
+        </section>
+
+        <aside class="edit-column">
+          <div class="assistant-head"><div class="assistant-avatar">✳</div><div><strong>Creative assistant</strong><span><i class="online-dot"></i> Ready when you are</span></div><button class="more-button" aria-label="More options">···</button></div>
+          <div class="conversation" id="conversation"><div class="date-stamp">A NEW EDITING SESSION</div><div class="assistant-message"><span class="message-label">INCUBRIX ASSISTANT</span><p>Upload your video and describe the edit in your language. Ask for Tamil or another target language when you want translated captions.</p></div><div class="suggestion-title">TRY A PROMPT</div><div class="suggestions"><button class="suggestion" data-prompt="Remove the first 5 seconds">Trim the opening <span>↗</span></button><button class="suggestion" data-prompt="Add a caption 'Key idea' when I say the main point">Add a caption <span>↗</span></button><button class="suggestion" data-prompt="Remove the filler words um and uh">Remove filler words <span>↗</span></button><button class="suggestion" data-prompt="Automatically caption this video in Tamil with no more than 6 words per caption">Add Tamil captions <span>↗</span></button></div></div>
+          <div class="job-status" id="jobStatus" hidden><div class="job-row"><span class="spinner"></span><span id="jobLabel">Preparing your video…</span><span id="jobPercent">0%</span></div><div class="progress-track"><i id="jobProgress"></i></div></div>
+          <div class="clarification-card" id="clarificationCard" hidden></div>
+          <form class="composer" id="promptForm"><div class="composer-top"><span class="composer-spark">✳</span><textarea id="promptInput" rows="2" maxlength="4000" placeholder="Describe an edit in any language…" aria-label="Describe an edit in any language" disabled></textarea></div><div class="composer-bottom"><div class="composer-hint"><kbd>↵</kbd> to send <span>·</span> Edits are reversible</div><button class="send-button" id="sendBtn" type="submit" disabled aria-label="Send prompt">↑</button></div></form>
+          <div class="history-footer"><span>EDIT HISTORY</span><div class="history-controls"><button id="undoBtn" disabled title="Undo">↶</button><button id="redoBtn" disabled title="Redo">↷</button></div><span id="revisionLabel">REV 00</span></div>
+        </aside>
+      </main>
+      <footer class="statusbar"><span><i class="online-dot"></i> LOCAL ENGINE CONNECTED</span><span>CONTENT-ANCHORED EDITING <b>·</b> CURRENT-TIME POLICY</span><span>IN PROCESS <b>·</b> BUILD 0.1</span></footer>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="/assets/studio.js" defer></script>
+  </body>
+</html>

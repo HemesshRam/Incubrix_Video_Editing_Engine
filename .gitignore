@@ -1,0 +1,46 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+.secrets/
+*.secret
+*.pem
+*.key
+
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Local outputs, media and session artifacts
+storage/*
+!storage/.gitkeep
+results.json
+test-results/
+*.log
+.incubrix-sync-*/
+
+# User media should not be uploaded accidentally. Force-add only intentional,
+# licensed fixtures that are safe to publish.
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+*.wav
+*.mp3
+
+# Tooling
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
