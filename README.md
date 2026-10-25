@@ -2,7 +2,7 @@
 
 A self-hosted video editing API and browser Studio. Upload a video, transcribe its speech, request edits in natural language, review the timeline, and render an MP4. The backend uses FastAPI, Redis, FFmpeg, faster-whisper, and either a deterministic mock prompt interpreter or Groq.
 
-> **Project status:** This repository contains an assessment project, not a managed public editing service. The browser workflow and several assessment scenarios still need verification. See [ASSESSMENT_RESULTS.md](ASSESSMENT_RESULTS.md) for measured results and remaining evidence gaps.
+> **Project status:** This repository contains an assessment project, not a managed public editing service. The browser workflow and several assessment scenarios still need verification. See [ASSESSMENT_TRACEABILITY.md](ASSESSMENT_TRACEABILITY.md) for assessment coverage and remaining evidence gaps.
 
 ## What you need
 
@@ -244,4 +244,4 @@ I cannot change the GitHub repository's visibility from this project folder. Thi
 - `POST` requests use idempotency keys. Redis is required for background jobs.
 - The timeline supports cut/keep/reorder/speed, mute/bleep, captions, translation, common-filler removal, transcript-gap trimming, background music state, undo/redo, and restore. Transcript-gap trimming uses word timing gaps as a silence proxy; it does not inspect audio waveforms.
 
-See [openapi.yaml](openapi.yaml) for the checked-in API contract, [ASSESSMENT_RESULTS.md](ASSESSMENT_RESULTS.md) for measured evidence, [ASSESSMENT_TRACEABILITY.md](ASSESSMENT_TRACEABILITY.md) for assessment coverage, and [REPORT.md](REPORT.md) for design notes and current limitations.
+See [openapi.yaml](openapi.yaml) for the checked-in API contract, [ASSESSMENT_TRACEABILITY.md](ASSESSMENT_TRACEABILITY.md) for assessment coverage, and [REPORT.md](REPORT.md) for design notes and current limitations.
